@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VR Shooter Monitor</title>
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #14161b;
+      --border: #252830;
+      --accent: #00ff88;
+      --accent2: #ff2d6b;
+      --neon: #b44dff;
+      --text: #e8e8f0;
+      --muted: #6b6d80;
+      --green: #4ade80;
+      --yellow: #facc15;
+      --red: #f87171;
+      --blue: #60a5fa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; min-height: 100vh; padding: 24px; max-width: 1200px; margin: 0 auto; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--neon)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    h1 { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .version-badge { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; background: rgba(0,255,136,0.12); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
+
+    .nav { display: flex; gap: 6px; margin-bottom: 28px; flex-wrap: wrap; }
+    .nav a { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); color: var(--muted); transition: all .2s; }
+    .nav a:hover, .nav a.active { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .card-title { font-size: 14px; font-weight: 700; }
+    .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 12px; }
+    .badge-green { background: rgba(74,222,128,0.12); color: var(--green); }
+    .badge-yellow { background: rgba(250,204,21,0.12); color: var(--yellow); }
+    .badge-red { background: rgba(248,113,113,0.12); color: var(--red); }
+    .badge-neon { background: rgba(180,77,255,0.12); color: var(--neon); }
+
+    .version-list { display: flex; flex-direction: column; gap: 10px; }
+    .version-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; }
+    .version-tag { font-size: 13px; font-weight: 700; color: var(--accent); min-width: 52px; }
+    .version-date { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .version-changes { font-size: 12.5px; line-height: 1.6; color: #b0b2c0; }
+    .version-item.latest { border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.03); }
+
+    .milestone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .milestone { padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+    .milestone-name { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .milestone-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .progress-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .tech-item { padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+    .tech-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .tech-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .tech-value code { background: rgba(0,255,136,0.1); color: var(--accent); padding: 1px 5px; border-radius: 4px; font-family: 'SF Mono', monospace; font-size: 11px; }
+
+    .art-section { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .art-card { padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    .art-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--neon); }
+    .art-card p { font-size: 12.5px; color: #b0b2c0; line-height: 1.6; }
+    .color-swatches { display: flex; gap: 6px; margin-top: 10px; }
+    .swatch { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border); }
+
+    .qa-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .qa-item { padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; text-align: center; }
+    .qa-number { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+    .qa-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .issue-list { display: flex; flex-direction: column; gap: 6px; }
+    .issue { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; }
+    .issue-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔫</div>
+    <div>
+      <h1>VR Shooter Monitor</h1>
+      <div class="subtitle">John Wick Style · Meta Quest 3 · 罐頭製作所</div>
+    </div>
+  </div>
+  <span class="version-badge">v0.7.4</span>
+</header>
+
+<nav class="nav">
+  <a href="#versions" class="active">版本歷程</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#art">美術設計</a>
+  <a href="#tech">技術架構</a>
+  <a href="#qa">QA 狀態</a>
+</nav>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- 版本歷程 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="versions">
+  <div class="section-title">版本歷程</div>
+  <div class="version-list">
+
+    <div class="version-item latest">
+      <div>
+        <div class="version-tag">v0.7.4</div>
+      </div>
+      <div>
+        <div class="version-date">2026-05-18 · 最新版本</div>
+        <div class="version-changes">
+          • 改用完整 VR FPS Kit prefab（取代自建 XR Rig）<br>
+          • 手部模型待實機確認<br>
+          • Sledgehammer 武器規劃中<br>
+          • QA PASS ✅ · 美術 PASS ✅
+        </div>
+      </div>
+    </div>
+
+    <div class="version-item">
+      <div>
+        <div class="version-tag">v0.7.2</div>
+      </div>
+      <div>
+        <div class="version-date">2026-05-13</div>
+        <div class="version-changes">
+          • VR Player 重建 — TrackedPoseDriver fix<br>
+          • XR Rig 結構調整，head tracking 修復<br>
+          • QA PASS ✅
+        </div>
+      </div>
+    </div>
+
+    <div class="version-item">
+      <div>
+        <div class="version-tag">v0.7.0</div>
+      </div>
+      <div>
+        <div class="version-date">2026-05-07 · 61.7 MB</div>
+        <div class="version-changes">
+          • DinoFracture 地板碎裂整合<br>
+          • WeaponCase 開蓋功能<br>
+          • Neon 燈光 + FloorMark X 標記<br>
+          • 自動化 VR 測試基礎設施<br>
+          • 攝影機高度修復（PlayerHeightConfig）<br>
+          • QA PASS ✅ · 美術 PASS ✅
+        </div>
+      </div>
+    </div>
+
+    <div class="version-item">
+      <div>
+        <div class="version-tag">v0.6.0</div>
+      </div>
+      <div>
+        <div class="version-date">2026-04 · 基礎版本</div>
+        <div class="version-changes">
+          • 基礎場景建立（Basement + HomeInvasion）<br>
+          • XR Plugin 整合<br>
+          • Synty 素材導入<br>
+          • 基礎 NPC + 射擊機制
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- Roadmap -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="roadmap">
+  <div class="section-title">計劃 / Roadmap</div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div class="card-title">GDD 核心機制</div>
+      <span class="badge badge-neon">設計文件</span>
+    </div>
+    <div style="font-size:12.5px;color:#b0b2c0;line-height:1.8">
+      <strong style="color:var(--accent)">Bullet Time</strong> — 擊殺觸發慢動作，玩家可在子彈時間中瞄準多目標<br>
+      <strong style="color:var(--accent)">CAR System</strong> — Center Axis Relock 射擊姿態，近距離快速射擊<br>
+      <strong style="color:var(--accent)">Weapon Pickup UX</strong> — 武器箱開蓋 → 抓取 → 裝備，物理互動<br>
+      <strong style="color:var(--accent)">Sledgehammer</strong> — 近戰武器，破壞環境 + 擊殺敵人
+    </div>
+  </div>
+
+  <div class="milestone-grid">
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M0 基礎建設</div>
+        <span class="badge badge-green">完成</span>
+      </div>
+      <div class="milestone-desc">場景、XR Plugin、Synty 素材、基礎 Build</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    </div>
+
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M1 武器互動</div>
+        <span class="badge badge-yellow">進行中</span>
+      </div>
+      <div class="milestone-desc">WeaponCase 開蓋、Grab、Sledgehammer、射擊回饋</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+    </div>
+
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M2 敵人 AI</div>
+        <span class="badge badge-yellow">規劃中</span>
+      </div>
+      <div class="milestone-desc">巡邏、偵測、攻擊、受傷/死亡動畫、Ragdoll</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>
+    </div>
+
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M3 Bullet Time</div>
+        <span class="badge badge-red">待開始</span>
+      </div>
+      <div class="milestone-desc">Time.timeScale 控制、視覺特效、觸發條件</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M4 場景完善</div>
+        <span class="badge badge-red">待開始</span>
+      </div>
+      <div class="milestone-desc">Basement 完整佈局、HomeInvasion 關卡、破壞物件</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="milestone">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="milestone-name">M5 Polish & Ship</div>
+        <span class="badge badge-red">待開始</span>
+      </div>
+      <div class="milestone-desc">音效、UI HUD、效能優化、Quest 3 最終驗證</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- 美術設計 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="art">
+  <div class="section-title">美術設計概念</div>
+  <div class="art-section">
+
+    <div class="art-card">
+      <h3>Low Polygon Style</h3>
+      <p>所有場景、角色、道具採用低多邊形風格。使用 Synty Studios 素材包作為基礎，確保視覺一致性和 Quest 3 效能。</p>
+      <p style="margin-top:8px;font-size:11px;color:var(--muted)">參考：Synty Polygon Heist, Polygon City</p>
+    </div>
+
+    <div class="art-card">
+      <h3>Pop Art Neon 色彩</h3>
+      <p>以 John Wick 1 的 dark green moody aesthetic 為基調，搭配霓虹燈光點綴。場景整體偏暗，用 Neon 色彩（紫、綠、粉）作為視覺焦點和引導。</p>
+      <div class="color-swatches">
+        <div class="swatch" style="background:#0a1a0f" title="Dark Green Base"></div>
+        <div class="swatch" style="background:#00ff88" title="Neon Green"></div>
+        <div class="swatch" style="background:#b44dff" title="Neon Purple"></div>
+        <div class="swatch" style="background:#ff2d6b" title="Neon Pink"></div>
+        <div class="swatch" style="background:#1a1a2e" title="Dark Moody"></div>
+        <div class="swatch" style="background:#facc15" title="Accent Gold"></div>
+      </div>
+    </div>
+
+    <div class="art-card">
+      <h3>場景設計</h3>
+      <p><strong>Basement</strong> — 地下室訓練場，武器箱、射擊靶、Neon 標記<br>
+      <strong>HomeInvasion</strong> — 住宅入侵關卡，破壞性環境互動<br>
+      <strong>FloorMark X</strong> — 地板 X 標記引導玩家站位</p>
+    </div>
+
+    <div class="art-card">
+      <h3>分鏡圖</h3>
+      <p>Act 1 分鏡圖位於 <code>docs/story/act1_storyboard/</code>，定義關卡流程和鏡頭語言。</p>
+      <p style="margin-top:8px"><a href="https://github.com/guppyd2002/vr-shooter/tree/main/docs/story" target="_blank">↗ GitHub 分鏡圖目錄</a></p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- 技術架構 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="tech">
+  <div class="section-title">技術架構</div>
+  <div class="tech-grid">
+
+    <div class="tech-item">
+      <div class="tech-label">引擎</div>
+      <div class="tech-value"><code>Unity 6000.3.11f1</code> + Universal Render Pipeline (URP)</div>
+    </div>
+
+    <div class="tech-item">
+      <div class="tech-label">XR 框架</div>
+      <div class="tech-value"><code>XR Interaction Toolkit</code> + <code>Oculus XR Plugin</code><br>Target: Meta Quest 3</div>
+    </div>
+
+    <div class="tech-item">
+      <div class="tech-label">VR 套件</div>
+      <div class="tech-value"><code>VR FPS Kit</code> — 完整 FPS prefab（Player、Weapon、UI）<br>取代自建 XR Rig，穩定性更高</div>
+    </div>
+
+    <div class="tech-item">
+      <div class="tech-label">物理破壞</div>
+      <div class="tech-value"><code>DinoFracture</code> — 即時碎裂系統<br>用於地板、牆壁、道具破壞效果</div>
+    </div>
+
+    <div class="tech-item">
+      <div class="tech-label">效能預算</div>
+      <div class="tech-value">
+        Lights: <code>≤ 8</code><br>
+        Rigidbodies: <code>≤ 50</code><br>
+        Active Enemies: <code>≤ 5</code><br>
+        Target FPS: <code>72</code> (Quest 3)
+      </div>
+    </div>
+
+    <div class="tech-item">
+      <div class="tech-label">版本控制</div>
+      <div class="tech-value">
+        <a href="https://github.com/guppyd2002/vr-shooter" target="_blank">GitHub: vr-shooter</a><br>
+        APK 保留最新 2 版，舊版定期清理
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- QA 狀態 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="qa">
+  <div class="section-title">QA 狀態</div>
+
+  <div class="qa-summary">
+    <div class="qa-item">
+      <div class="qa-number" style="color:var(--accent)">v0.7.4</div>
+      <div class="qa-label">最新 APK</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-number" style="color:var(--green)">PASS</div>
+      <div class="qa-label">QA 狀態</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-number" style="color:var(--green)">PASS</div>
+      <div class="qa-label">美術審查</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-number" style="color:var(--yellow)">待驗</div>
+      <div class="qa-label">Quest 3 實機</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-header">
+      <div class="card-title">已知問題 / 待確認</div>
+    </div>
+    <div class="issue-list">
+      <div class="issue"><div class="issue-dot" style="background:var(--yellow)"></div>手部模型顯示 — 待 Quest 3 實機確認</div>
+      <div class="issue"><div class="issue-dot" style="background:var(--yellow)"></div>VR FPS Kit prefab 與自訂腳本相容性 — 持續監控</div>
+      <div class="issue"><div class="issue-dot" style="background:var(--muted)"></div>Sledgehammer 碰撞判定 — 尚未實作</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-header">
+      <div class="card-title">QA 流程</div>
+    </div>
+    <div style="font-size:12.5px;color:#b0b2c0;line-height:1.8">
+      1. 每版 APK build 後 → 香吉士 QA 獨立驗證<br>
+      2. 小美美術審查 → 風格一致性確認<br>
+      3. 雙 PASS 後才可交付 CEO<br>
+      4. Quest 3 實機驗證 → 最終 Gate
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>VR Shooter Monitor · 罐頭製作所 · 更新 2026-05-19</span>
+  <span><a href="https://github.com/guppyd2002/vr-shooter" target="_blank">GitHub ↗</a></span>
+</footer>
+
+</body>
+</html>
